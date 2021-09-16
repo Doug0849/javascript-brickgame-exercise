@@ -79,7 +79,6 @@ function draw() {
     if (x > paddleX && x < paddleX + paddleWidth) {
       dy = -dy
     } else {
-      alert('Game Over')
       document.location.reload()
     }
   }
@@ -99,6 +98,9 @@ function draw() {
 }
 
 function keyDownHandler(e) {
+  if (e.key === "Enter") { 
+    setInterval(draw, 10);
+  }
   if (e.keyCode == 39) {
     rightPressed = true
   }
@@ -130,8 +132,10 @@ function collisionDetection() {
   }
 }
 
+draw()
 
-document.addEventListener("keydown", keyDownHandler)
+document.addEventListener("keydown", function anyKeyDown(e) {
+  keyDownHandler(e)
+})
+
 document.addEventListener("keyup", keyUpHandler)
-
-const interval = setInterval(draw, 10);
