@@ -19,7 +19,7 @@ let leftPressed = false  // 左按鍵判斷用
 console.log()
 
 // 定義磚塊資料
-let brickRowCount = 7
+let brickRowCount = 3
 let brickColumnCount = 5
 const brickWidth = 75
 const brickHeight = 20

@@ -23,9 +23,8 @@ p {
 canvas {
   display: block;
   margin: 0 auto;
-  position: absolute;
-  top: 280px;
-  left: 720px;
+  border: 2px solid grey;
+  background-color:rgb(221, 221, 221)
 }
 
 .container {
