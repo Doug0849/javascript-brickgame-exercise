@@ -23,7 +23,7 @@ let brickRowCount = 7
 let brickColumnCount = 5
 const brickWidth = 75
 const brickHeight = 20
-const brickPadding = 0
+const brickPadding = 10
 const brickOffsetTop = 30
 const brickOffsetLeft = 30
 // 建立磚塊陣列資料結構，使用雙層陣列來宣告。
