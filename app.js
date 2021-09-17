@@ -1,23 +1,29 @@
 const canvas = document.querySelector('#myCanvas') // 取得渲染畫布位置
 const ctx = canvas.getContext('2d') // 宣告為2d渲染環境
+const showScore = document.querySelector('.score-number')
+const winText = document.querySelector('.win')
+const loseText = document.querySelector('.lose')
+let interval = null
 let x = canvas.width / 2; // 球心，定義x座標於畫面中間位置
 let y = canvas.height - 30; // 球心，定義y座標於畫面由下往上30位置
-let dx = 2; // 定義球要移動的X距離
-let dy = -2; // 定義球要移動的Y距離
-const ballRadius = 10 // 球的半徑
+let dx = 5 * (Math.round(Math.random()) * 2 - 1); // 定義球要移動的X距離 * 1或-1
+let dy = Math.ceil(Math.random() * -3) - 2; // 定義球要移動的Y距離
+const ballRadius = 6 // 球的半徑
 // 定義球拍
-const paddleHeight = 10;
+const paddleHeight = 6;
 const paddleWidth = 75;
 let paddleX = (canvas.width - paddleWidth) / 2; // 定義畫板初始位置
 let rightPressed = false // 右按鍵判斷用
 let leftPressed = false  // 左按鍵判斷用
 
+console.log()
+
 // 定義磚塊資料
-let brickRowCount = 3
+let brickRowCount = 7
 let brickColumnCount = 5
 const brickWidth = 75
 const brickHeight = 20
-const brickPadding = 10
+const brickPadding = 0
 const brickOffsetTop = 30
 const brickOffsetLeft = 30
 // 建立磚塊陣列資料結構，使用雙層陣列來宣告。
@@ -27,6 +33,34 @@ for (c = 0; c < brickColumnCount; c++) {
   for (r = 0; r < brickRowCount; r++) {
     bricks[c][r] = { x: 0, y: 0, status: 1 };
   }
+}
+
+// 分數及生命紀錄
+let score = 140
+let lives = 3
+
+function initial() {
+  x = canvas.width / 2
+  y = canvas.height - 30
+  dx = 5 * (Math.round(Math.random()) * 2 - 1)
+  dy = Math.ceil(Math.random() * -3) - 2
+  score = 0
+  lives = 3
+  bricks = [];
+  for (c = 0; c < brickColumnCount; c++) {
+    bricks[c] = [];
+    for (r = 0; r < brickRowCount; r++) {
+      bricks[c][r] = { x: 0, y: 0, status: 1 };
+    }
+  }
+}
+
+function drawBoundary() {
+  ctx.beginPath()
+  ctx.moveTo(0, canvas.height - ballRadius)
+  ctx.lineTo(canvas.width, canvas.height - ballRadius)
+  ctx.strokeStyle = '#FF0000'
+  ctx.stroke()
 }
 
 function drawBall() {
@@ -67,19 +101,59 @@ function drawBricks() {
   }
 }
 
+function drawLives() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
+}
+
+function collisionDetection() {
+  for (c = 0; c < brickColumnCount; c++) {
+    for (r = 0; r < brickRowCount; r++) {
+      let b = bricks[c][r]
+      if (b.status == 1) {
+        if (x > b.x - ballRadius && x < b.x + brickWidth + ballRadius && y > b.y + ballRadius && y < b.y + brickHeight + ballRadius) {
+          dy = -dy;
+          b.status = 0;
+          score += 10;
+          showScore.innerText = score
+        }
+      }
+    }
+  }
+}
+
+function detectionWin() {
+  if (score === bricks.length * bricks[0].length * 10 && score !== 0) {
+    clearInterval(interval)
+    winText.style.display = "block";
+  }
+}
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
+  detectionWin()
   if (x + dx > canvas.width - ballRadius || x + dx < 0 + ballRadius) {
     dx = -dx;
   }
-
   if (y + dy < 0 + ballRadius) {
     dy = -dy;
-  } else if (y + dy > canvas.height - ballRadius) {
+  } else if (y + dy > canvas.height - ballRadius * 2) {
     if (x > paddleX && x < paddleX + paddleWidth) {
       dy = -dy
     } else {
-      document.location.reload()
+      if (!lives) {
+        clearInterval(interval)
+        loseText.style.display = "block"
+      }
+      else {
+        lives--
+        x = canvas.width / 2;
+        y = canvas.height - 30;
+        dx = 5 * (Math.round(Math.random()) * 2 - 1)
+        dy = Math.ceil(Math.random() * -3) - 2
+        paddleX = (canvas.width - paddleWidth) / 2
+      }
     }
   }
 
@@ -89,6 +163,8 @@ function draw() {
   else if (leftPressed && paddleX > 0) {
     paddleX -= 7
   }
+  drawBoundary()
+  drawLives()
   drawBricks()
   drawBall()
   drawPaddle()
@@ -98,8 +174,17 @@ function draw() {
 }
 
 function keyDownHandler(e) {
-  if (e.key === "Enter") { 
-    setInterval(draw, 10);
+  if (e.key === "Enter") {
+    if (!interval) {
+      interval = setInterval(draw, 10)
+    } else {
+      initial()
+      clearInterval(interval)
+      interval = null
+      interval = setInterval(draw, 10)
+      loseText.style.display = "none"
+      winText.style.display = "none"
+    }
   }
   if (e.keyCode == 39) {
     rightPressed = true
@@ -118,24 +203,22 @@ function keyUpHandler(e) {
   }
 }
 
-function collisionDetection() {
-  for (c = 0; c < brickColumnCount; c++) {
-    for (r = 0; r < brickRowCount; r++) {
-      let b = bricks[c][r]
-      if (b.status == 1) {
-        if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
-          dy = -dy;
-          b.status = 0;
-        }
-      }
-    }
+function mouseMoveHandler(e) {
+  let relativeX = e.clientX - canvas.offsetLeft
+  if (relativeX > 0 && relativeX < canvas.width) {
+    paddleX = relativeX - paddleWidth / 2
   }
 }
 
 draw()
+
+
 
 document.addEventListener("keydown", function anyKeyDown(e) {
   keyDownHandler(e)
 })
 
 document.addEventListener("keyup", keyUpHandler)
+
+document.addEventListener('mousemove', mouseMoveHandler)
+
