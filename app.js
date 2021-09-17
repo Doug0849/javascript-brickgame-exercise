@@ -3,7 +3,6 @@ const ctx = canvas.getContext('2d') // 宣告為2d渲染環境
 const showScore = document.querySelector('.score-number')
 const winText = document.querySelector('.win')
 const loseText = document.querySelector('.lose')
-let interval = null
 let x = canvas.width / 2; // 球心，定義x座標於畫面中間位置
 let y = canvas.height - 30; // 球心，定義y座標於畫面由下往上30位置
 let dx = 5 * (Math.round(Math.random()) * 2 - 1); // 定義球要移動的X距離 * 1或-1
@@ -16,7 +15,7 @@ let paddleX = (canvas.width - paddleWidth) / 2; // 定義畫板初始位置
 let rightPressed = false // 右按鍵判斷用
 let leftPressed = false  // 左按鍵判斷用
 
-console.log()
+let render = null
 
 // 定義磚塊資料
 let brickRowCount = 3
@@ -35,16 +34,13 @@ for (c = 0; c < brickColumnCount; c++) {
   }
 }
 
-// 分數及生命紀錄
-let score = 140
-let lives = 3
-
+// 遊戲初始化
 function initial() {
   x = canvas.width / 2
   y = canvas.height - 30
   dx = 5 * (Math.round(Math.random()) * 2 - 1)
   dy = Math.ceil(Math.random() * -3) - 2
-  score = 0
+  score = 140
   lives = 3
   bricks = [];
   for (c = 0; c < brickColumnCount; c++) {
@@ -53,6 +49,13 @@ function initial() {
       bricks[c][r] = { x: 0, y: 0, status: 1 };
     }
   }
+  drawBoundary()
+  drawBall()
+  drawPaddle()
+  drawBricks()
+  drawLives()
+  loseText.style.display = "none"
+  winText.style.display = "none"
 }
 
 function drawBoundary() {
@@ -125,14 +128,18 @@ function collisionDetection() {
 
 function detectionWin() {
   if (score === bricks.length * bricks[0].length * 10 && score !== 0) {
-    clearInterval(interval)
-    winText.style.display = "block";
-  }
+    winText.style.display = "block"
+    return true
+  } 
 }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
-  detectionWin()
+  if (detectionWin()) {
+    cancelAnimationFrame(render)
+    render = null
+    return
+  }
   if (x + dx > canvas.width - ballRadius || x + dx < 0 + ballRadius) {
     dx = -dx;
   }
@@ -171,19 +178,16 @@ function draw() {
   collisionDetection()
   x += dx
   y += dy
+
+  render = requestAnimationFrame(draw)
+
 }
 
 function keyDownHandler(e) {
   if (e.key === "Enter") {
-    if (!interval) {
-      interval = setInterval(draw, 10)
-    } else {
+    if (!render) { // 由原本的interval 改為 render
       initial()
-      clearInterval(interval)
-      interval = null
-      interval = setInterval(draw, 10)
-      loseText.style.display = "none"
-      winText.style.display = "none"
+      draw() // 如果render是空的話，就執行畫圖渲染計算
     }
   }
   if (e.keyCode == 39) {
@@ -210,9 +214,7 @@ function mouseMoveHandler(e) {
   }
 }
 
-draw()
-
-
+initial()
 
 document.addEventListener("keydown", function anyKeyDown(e) {
   keyDownHandler(e)
