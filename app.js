@@ -140,27 +140,29 @@ function draw() {
     render = null
     return
   }
+
   if (x + dx > canvas.width - ballRadius || x + dx < 0 + ballRadius) {
     dx = -dx;
   }
+
   if (y + dy < 0 + ballRadius) {
     dy = -dy;
   } else if (y + dy > canvas.height - ballRadius * 2) {
     if (x > paddleX && x < paddleX + paddleWidth) {
       dy = -dy
     } else {
-      if (!lives) {
-        clearInterval(interval)
+      lives--
+      if (lives < 1) {
+        cancelAnimationFrame(render)
+        render = null
         loseText.style.display = "block"
+        return
       }
-      else {
-        lives--
-        x = canvas.width / 2;
-        y = canvas.height - 30;
-        dx = 5 * (Math.round(Math.random()) * 2 - 1)
-        dy = Math.ceil(Math.random() * -3) - 2
-        paddleX = (canvas.width - paddleWidth) / 2
-      }
+      x = canvas.width / 2;
+      y = canvas.height - 30;
+      dx = 5 * (Math.round(Math.random()) * 2 - 1)
+      dy = Math.ceil(Math.random() * -3) - 2
+      paddleX = (canvas.width - paddleWidth) / 2
     }
   }
 
@@ -170,6 +172,7 @@ function draw() {
   else if (leftPressed && paddleX > 0) {
     paddleX -= 7
   }
+
   drawBoundary()
   drawLives()
   drawBricks()
@@ -178,9 +181,7 @@ function draw() {
   collisionDetection()
   x += dx
   y += dy
-
   render = requestAnimationFrame(draw)
-
 }
 
 function keyDownHandler(e) {
