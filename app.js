@@ -40,7 +40,7 @@ function initial() {
   y = canvas.height - 30
   dx = 5 * (Math.round(Math.random()) * 2 - 1)
   dy = Math.ceil(Math.random() * -3) - 2
-  score = 140
+  score = 0
   lives = 3
   bricks = [];
   for (c = 0; c < brickColumnCount; c++) {
@@ -130,7 +130,7 @@ function detectionWin() {
   if (score === bricks.length * bricks[0].length * 10 && score !== 0) {
     winText.style.display = "block"
     return true
-  } 
+  }
 }
 
 function draw() {
